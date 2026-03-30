@@ -45,4 +45,11 @@ public class ProductController {
         }
         return ResponseEntity.ok(productRepository.findAll());
     }
+
+    @GetMapping("/{id}/similar")
+    public ResponseEntity<List<Product>> getSimilarProducts(
+        @PathVariable Long id, 
+        @RequestParam Long categoryId) {
+    return ResponseEntity.ok(productRepository.findByCategory_CategoryIDAndProductIDNot(categoryId, id));
+}
 }

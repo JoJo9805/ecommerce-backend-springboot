@@ -1,7 +1,4 @@
 package com.webthuongmai.controller;
-import com.webthuongmai.entity.Cart;
-import com.webthuongmai.entity.CartItem;
-import com.webthuongmai.entity.ProductVariant;
 import com.webthuongmai.repository.CartItemRepository;
 import com.webthuongmai.repository.CartRepository;
 import com.webthuongmai.service.CartService;
@@ -34,8 +31,16 @@ public class CartController {
     public Cart create(@RequestBody Cart cart) {
         return cartService.createCart(cart);
     }
-    @PostMapping("/add")
-public ResponseEntity<?> addToCart(@RequestParam Long userId, @RequestParam Long variantId) {
+@PostMapping("/add")
+public ResponseEntity<?> addToCart(
+        @RequestParam Long userId, 
+        @RequestParam Long variantId, 
+        @RequestParam(defaultValue = "1") Integer quantity) {
+    
+    if (quantity < 1) {
+        return ResponseEntity.badRequest().body("Số lượng phải lớn hơn hoặc bằng 1");
+    }
+
     Cart cart = cartRepository.findByUser_UserID(userId)
             .orElseGet(() -> {
                 Cart newCart = new Cart();
@@ -44,14 +49,14 @@ public ResponseEntity<?> addToCart(@RequestParam Long userId, @RequestParam Long
                 newCart.setUser(user);
                 return cartRepository.save(newCart);
             });
-
     Optional<CartItem> existingItem = cartItemRepository
             .findByCart_CartIDAndProductVariant_VariantID(cart.getCartID(), variantId);
 
     if (existingItem.isPresent()) {
         CartItem item = existingItem.get();
-        item.setQuantity(item.getQuantity() + 1);
+        item.setQuantity(item.getQuantity() + quantity);
         cartItemRepository.save(item);
+        return ResponseEntity.ok("Đã tăng số lượng sản phẩm trong giỏ");
     } else {
         CartItem newItem = new CartItem();
         newItem.setCart(cart);
@@ -60,10 +65,9 @@ public ResponseEntity<?> addToCart(@RequestParam Long userId, @RequestParam Long
         variant.setVariantID(variantId);
         newItem.setProductVariant(variant);
         
-        newItem.setQuantity(1);
+        newItem.setQuantity(quantity);
         cartItemRepository.save(newItem);
+        return ResponseEntity.ok("Đã thêm sản phẩm mới vào giỏ hàng");
     }
-
-    return ResponseEntity.ok("Đã thêm sản phẩm vào giỏ hàng");
 }
 }
