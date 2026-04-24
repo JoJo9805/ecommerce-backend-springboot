@@ -1,271 +1,271 @@
-CREATE DATABASE IF NOT EXISTS ecommerce_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE master;
+GO
+ALTER DATABASE ecommerce_db SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+DROP DATABASE ecommerce_db;
+GO
+CREATE DATABASE ecommerce_db;
+GO
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'ecommerce_db')
+BEGIN
+    CREATE DATABASE ecommerce_db;
+END
+GO
+
 USE ecommerce_db;
+GO
 
-CREATE TABLE Users (
-    UserID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    FullName VARCHAR(255) NOT NULL,
-    Email VARCHAR(255) UNIQUE NOT NULL,
-    PasswordHash VARCHAR(255) NOT NULL,
-    Phone VARCHAR(20),
-    Birthday DATE,
-    Gender VARCHAR(10),
-    FollowerCount INT DEFAULT 0,
-    Status ENUM('Active', 'Inactive') DEFAULT 'Active',
-    LastLoginDate DATETIME,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    DeletedAt DATETIME DEFAULT NULL
+CREATE TABLE roles (
+    roleid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    role_name NVARCHAR(50) NOT NULL
 );
 
-CREATE TABLE Address (
-    AddressID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    UserID BIGINT,
-    ReceiverName VARCHAR(255),
-    Phone VARCHAR(20),
-    Province VARCHAR(100),
-    District VARCHAR(100),
-    Ward VARCHAR(100),
-    DetailAddress TEXT,
-    IsDefault BOOLEAN DEFAULT FALSE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    DeletedAt DATETIME DEFAULT NULL,
-    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+CREATE TABLE users (
+    userid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    full_name NVARCHAR(255) NOT NULL,
+    email NVARCHAR(255) UNIQUE NOT NULL,
+    password_hash NVARCHAR(255) NOT NULL,
+    phone NVARCHAR(20),
+    birthday DATE,
+    gender NVARCHAR(10),
+    follower_count INT DEFAULT 0,
+    status NVARCHAR(20) CHECK (status IN ('Active', 'Inactive')) DEFAULT 'Active',
+    last_login_date DATETIME,
+    roleid BIGINT,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    deleted_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (roleid) REFERENCES roles(roleid)
 );
 
-CREATE TABLE Roles (
-    RoleID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    RoleName VARCHAR(50) NOT NULL
+CREATE TABLE address (
+    addressid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    userid BIGINT,
+    receiver_name NVARCHAR(255),
+    phone NVARCHAR(20),
+    province NVARCHAR(100),
+    district NVARCHAR(100),
+    ward NVARCHAR(100),
+    detail_address NVARCHAR(MAX),
+    is_default BIT DEFAULT 0,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    deleted_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (userid) REFERENCES users(userid)
 );
 
-CREATE TABLE User_Roles (
-    UserID BIGINT,
-    RoleID BIGINT,
-    PRIMARY KEY (UserID, RoleID),
-    FOREIGN KEY (UserID) REFERENCES Users(UserID),
-    FOREIGN KEY (RoleID) REFERENCES Roles(RoleID)
+CREATE TABLE shop (
+    shopid BIGINT PRIMARY KEY,
+    shop_name NVARCHAR(255) NOT NULL,
+    description NVARCHAR(MAX),
+    rating DECIMAL(3,2) DEFAULT 0.0,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    deleted_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (shopid) REFERENCES users(userid)
 );
 
-CREATE TABLE Shop (
-    ShopID BIGINT PRIMARY KEY,
-    ShopName VARCHAR(255) NOT NULL,
-    Description TEXT,
-    Rating DECIMAL(3,2) DEFAULT 0.0,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    DeletedAt DATETIME DEFAULT NULL,
-    FOREIGN KEY (ShopID) REFERENCES Users(UserID)
+CREATE TABLE categories (
+    categoryid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    category_name NVARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    deleted_at DATETIME DEFAULT NULL
 );
 
-CREATE TABLE Categories (
-    CategoryID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    CategoryName VARCHAR(255) NOT NULL,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    DeletedAt DATETIME DEFAULT NULL
+CREATE TABLE product (
+    productid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    product_name NVARCHAR(255) NOT NULL,
+    categoryid BIGINT,
+    shopid BIGINT,
+    description NVARCHAR(MAX),
+    brand NVARCHAR(100),
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    deleted_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (categoryid) REFERENCES categories(categoryid),
+    FOREIGN KEY (shopid) REFERENCES shop(shopid)
 );
 
-CREATE TABLE Product (
-    ProductID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    ProductName VARCHAR(255) NOT NULL,
-    CategoryID BIGINT,
-    ShopID BIGINT,
-    Description TEXT,
-    Brand VARCHAR(100),
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    DeletedAt DATETIME DEFAULT NULL,
-    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID),
-    FOREIGN KEY (ShopID) REFERENCES Shop(ShopID)
+CREATE TABLE product_image (
+    imageid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    productid BIGINT,
+    image_url NVARCHAR(MAX) NOT NULL,
+    is_main BIT DEFAULT 0,
+    created_at DATETIME DEFAULT GETDATE(),
+    deleted_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (productid) REFERENCES product(productid)
 );
 
-CREATE TABLE Product_Categories_Map (
-    ProductID BIGINT,
-    CategoryID BIGINT,
-    PRIMARY KEY (ProductID, CategoryID),
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID),
-    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID)
+CREATE TABLE product_variant (
+    variantid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    productid BIGINT,
+    size NVARCHAR(50),
+    price DECIMAL(15,2) NOT NULL,
+    color NVARCHAR(50),
+    status NVARCHAR(50),
+    stock_quantity INT DEFAULT 0,
+    sku NVARCHAR(100) UNIQUE,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    deleted_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (productid) REFERENCES product(productid)
 );
 
-CREATE TABLE Product_image (
-    ImageID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    ProductID BIGINT,
-    ImageURL TEXT NOT NULL,
-    IsMain BOOLEAN DEFAULT FALSE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    DeletedAt DATETIME DEFAULT NULL,
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
+CREATE TABLE tags (
+    tagid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    tag_name NVARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE Product_variant (
-    VariantID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    ProductID BIGINT,
-    Size VARCHAR(50),
-    Price DECIMAL(15,2) NOT NULL,
-    Color VARCHAR(50),
-    Status VARCHAR(50),
-    StockQuantity INT DEFAULT 0,
-    SKU VARCHAR(100) UNIQUE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    DeletedAt DATETIME DEFAULT NULL,
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
+CREATE TABLE product_tag_map (
+    productid BIGINT,
+    tagid BIGINT,
+    PRIMARY KEY (productid, tagid),
+    FOREIGN KEY (productid) REFERENCES product(productid),
+    FOREIGN KEY (tagid) REFERENCES tags(tagid)
 );
 
-CREATE TABLE Tags (
-    TagID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    TagName VARCHAR(100) NOT NULL UNIQUE
+CREATE TABLE cart (
+    cartid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    userid BIGINT,
+    FOREIGN KEY (userid) REFERENCES users(userid)
 );
 
-CREATE TABLE Product_Tag_Map (
-    ProductID BIGINT,
-    TagID BIGINT,
-    PRIMARY KEY (ProductID, TagID),
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID),
-    FOREIGN KEY (TagID) REFERENCES Tags(TagID)
+CREATE TABLE cart_items (
+    cart_itemid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    cartid BIGINT,
+    variantid BIGINT,
+    quantity INT DEFAULT 1,
+    FOREIGN KEY (cartid) REFERENCES cart(cartid),
+    FOREIGN KEY (variantid) REFERENCES product_variant(variantid)
 );
 
-CREATE TABLE Cart (
-    CartID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    UserID BIGINT,
-    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+CREATE TABLE orders (
+    orderid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    buyerid BIGINT,
+    shopid BIGINT,
+    addressid BIGINT,
+    order_date DATETIME DEFAULT GETDATE(),
+    payment_status NVARCHAR(20) CHECK (payment_status IN ('Unpaid', 'Paid', 'Refunded')) DEFAULT 'Unpaid',
+    shipping_status NVARCHAR(20) CHECK (shipping_status IN ('Pending', 'Confirmed', 'Shipping', 'Completed', 'Cancelled')) DEFAULT 'Pending',
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (buyerid) REFERENCES users(userid),
+    FOREIGN KEY (shopid) REFERENCES shop(shopid),
+    FOREIGN KEY (addressid) REFERENCES address(addressid)
 );
 
-CREATE TABLE Cart_Items (
-    CartItemID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    CartID BIGINT,
-    VariantID BIGINT,
-    Quantity INT DEFAULT 1,
-    FOREIGN KEY (CartID) REFERENCES Cart(CartID),
-    FOREIGN KEY (VariantID) REFERENCES Product_variant(VariantID)
+CREATE TABLE order_items (
+    order_itemid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    orderid BIGINT,
+    variantid BIGINT,
+    quantity INT,
+    price DECIMAL(15,2),
+    FOREIGN KEY (orderid) REFERENCES orders(orderid),
+    FOREIGN KEY (variantid) REFERENCES product_variant(variantid)
 );
 
-CREATE TABLE Orders (
-    OrderID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    BuyerID BIGINT,
-    ShopID BIGINT,
-    AddressID BIGINT,
-    OrderDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PaymentStatus ENUM('Unpaid', 'Paid', 'Refunded') DEFAULT 'Unpaid',
-    ShippingStatus ENUM('Pending', 'Confirmed', 'Shipping', 'Completed', 'Cancelled') DEFAULT 'Pending',
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (BuyerID) REFERENCES Users(UserID),
-    FOREIGN KEY (ShopID) REFERENCES Shop(ShopID),
-    FOREIGN KEY (AddressID) REFERENCES Address(AddressID)
+CREATE TABLE payment_methods (
+    paymentid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    orderid BIGINT,
+    method NVARCHAR(100),
+    payment_date DATETIME,
+    amount DECIMAL(15,2),
+    FOREIGN KEY (orderid) REFERENCES orders(orderid)
 );
 
-CREATE TABLE Order_Items (
-    OrderItemID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    OrderID BIGINT,
-    VariantID BIGINT,
-    Quantity INT,
-    Price DECIMAL(15,2),
-    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
-    FOREIGN KEY (VariantID) REFERENCES Product_variant(VariantID)
+CREATE TABLE shipping_units (
+    shipmentid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    orderid BIGINT,
+    shipping_method NVARCHAR(100),
+    shipping_fee DECIMAL(15,2),
+    tracking_number NVARCHAR(100),
+    shipped_date DATETIME,
+    delivery_date DATETIME,
+    FOREIGN KEY (orderid) REFERENCES orders(orderid)
 );
 
-CREATE TABLE Payment_Methods (
-    PaymentID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    OrderID BIGINT,
-    Method VARCHAR(100),
-    PaymentDate DATETIME,
-    Amount DECIMAL(15,2),
-    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
+CREATE TABLE reviews (
+    reviewid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    productid BIGINT,
+    userid BIGINT,
+    order_itemid BIGINT,
+    rating INT,
+    comment NVARCHAR(MAX),
+    review_date DATETIME DEFAULT GETDATE(),
+    is_fake BIT DEFAULT 0,
+    updated_at DATETIME DEFAULT GETDATE(),
+    deleted_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (productid) REFERENCES product(productid),
+    FOREIGN KEY (userid) REFERENCES users(userid),
+    FOREIGN KEY (order_itemid) REFERENCES order_items(order_itemid)
 );
 
-CREATE TABLE Shipping_Units (
-    ShipmentID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    OrderID BIGINT,
-    ShippingMethod VARCHAR(100),
-    ShippingFee DECIMAL(15,2),
-    TrackingNumber VARCHAR(100),
-    ShippedDate DATETIME,
-    DeliveryDate DATETIME,
-    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
+CREATE TABLE vouchers (
+    voucherid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    voucher_type NVARCHAR(20) CHECK (voucher_type IN ('Shop', 'Platform', 'Shipping')),
+    discount_value DECIMAL(15,2),
+    start_date DATETIME,
+    end_date DATETIME,
+    status NVARCHAR(50),
+    updated_at DATETIME DEFAULT GETDATE(),
+    deleted_at DATETIME DEFAULT NULL
 );
 
-CREATE TABLE Reviews (
-    ReviewID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    ProductID BIGINT,
-    UserID BIGINT,
-    OrderItemID BIGINT,
-    Rating INT,
-    Comment TEXT,
-    ReviewDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    IsFake BOOLEAN DEFAULT FALSE,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    DeletedAt DATETIME DEFAULT NULL,
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID),
-    FOREIGN KEY (UserID) REFERENCES Users(UserID),
-    FOREIGN KEY (OrderItemID) REFERENCES Order_Items(OrderItemID)
+CREATE TABLE order_voucher (
+    orderid BIGINT,
+    voucherid BIGINT,
+    PRIMARY KEY (orderid, voucherid),
+    FOREIGN KEY (orderid) REFERENCES orders(orderid),
+    FOREIGN KEY (voucherid) REFERENCES vouchers(voucherid)
 );
 
-CREATE TABLE Vouchers (
-    VoucherID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    VoucherType ENUM('Shop', 'Platform', 'Shipping'),
-    DiscountValue DECIMAL(15,2),
-    StartDate DATETIME,
-    EndDate DATETIME,
-    Status VARCHAR(50),
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    DeletedAt DATETIME DEFAULT NULL
+CREATE TABLE notifications (
+    notificationid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    senderid BIGINT NULL,
+    receiverid BIGINT,
+    type NVARCHAR(50) CHECK (type IN ('AI_Recommend', 'OrderUpdate', 'DirectMessage', 'SystemAlert')),
+    title NVARCHAR(255),
+    content NVARCHAR(MAX),
+    related_link NVARCHAR(255),
+    is_read BIT DEFAULT 0,
+    created_at DATETIME DEFAULT GETDATE(),
+    read_at DATETIME,
+    FOREIGN KEY (senderid) REFERENCES users(userid),
+    FOREIGN KEY (receiverid) REFERENCES users(userid)
 );
 
-CREATE TABLE Order_Voucher (
-    OrderID BIGINT,
-    VoucherID BIGINT,
-    PRIMARY KEY (OrderID, VoucherID),
-    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
-    FOREIGN KEY (VoucherID) REFERENCES Vouchers(VoucherID)
+CREATE TABLE user_activities (
+    activityid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    userid BIGINT,
+    productid BIGINT,
+    action_type NVARCHAR(20) CHECK (action_type IN ('View', 'Search', 'AddToCart', 'Click')),
+    timestamp DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (userid) REFERENCES users(userid),
+    FOREIGN KEY (productid) REFERENCES product(productid)
 );
 
-CREATE TABLE Notifications (
-    NotificationID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    SenderID BIGINT NULL,
-    ReceiverID BIGINT,
-    Type ENUM('AI_Recommend', 'OrderUpdate', 'DirectMessage', 'SystemAlert'),
-    Title VARCHAR(255),
-    Content TEXT,
-    RelatedLink VARCHAR(255),
-    IsRead BOOLEAN DEFAULT FALSE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ReadAt DATETIME,
-    FOREIGN KEY (SenderID) REFERENCES Users(UserID),
-    FOREIGN KEY (ReceiverID) REFERENCES Users(UserID)
+CREATE TABLE search_history (
+    searchid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    userid BIGINT,
+    keyword NVARCHAR(255),
+    created_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (userid) REFERENCES users(userid)
 );
 
-CREATE TABLE User_Activities (
-    ActivityID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    UserID BIGINT,
-    ProductID BIGINT,
-    ActionType ENUM('View', 'Search', 'AddToCart', 'Click'),
-    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (UserID) REFERENCES Users(UserID),
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
+CREATE TABLE review_reports (
+    reportid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    reviewid BIGINT,
+    reporterid BIGINT,
+    reason NVARCHAR(MAX),
+    created_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (reviewid) REFERENCES reviews(reviewid),
+    FOREIGN KEY (reporterid) REFERENCES users(userid)
 );
 
-CREATE TABLE Search_History (
-    SearchID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    UserID BIGINT,
-    Keyword VARCHAR(255),
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+CREATE TABLE review_metas (
+    reviewid BIGINT PRIMARY KEY,
+    ip_address NVARCHAR(50),
+    deviceid NVARCHAR(255),
+    FOREIGN KEY (reviewid) REFERENCES reviews(reviewid)
 );
-
-CREATE TABLE Review_Reports (
-    ReportID BIGINT AUTO_INCREMENT PRIMARY KEY,
-    ReviewID BIGINT,
-    ReporterID BIGINT,
-    Reason TEXT,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (ReviewID) REFERENCES Reviews(ReviewID),
-    FOREIGN KEY (ReporterID) REFERENCES Users(UserID)
-);
-
-CREATE TABLE Review_Metas (
-    ReviewID BIGINT PRIMARY KEY,
-    IP_Address VARCHAR(50),
-    DeviceID VARCHAR(255),
-    FOREIGN KEY (ReviewID) REFERENCES Reviews(ReviewID)
-);
+GO
