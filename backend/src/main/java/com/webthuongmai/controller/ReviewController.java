@@ -1,7 +1,9 @@
 package com.webthuongmai.controller;
 import com.webthuongmai.entity.Review;
+import com.webthuongmai.repository.ReviewRepository;
 import com.webthuongmai.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -17,6 +19,14 @@ public class ReviewController {
         return reviewService.getAllReviews();
     }
 
+    @Autowired
+    private ReviewRepository reviewRepository;
+
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<List<Review>> getByProduct(@PathVariable Long productId) {
+        return ResponseEntity.ok(reviewRepository.findByProduct_ProductID(productId));
+    }
+    
     @PostMapping
     public Review create(@RequestBody Review review) {
         return reviewService.createReview(review);

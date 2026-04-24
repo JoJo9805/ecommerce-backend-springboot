@@ -24,4 +24,15 @@ public class Shop {
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();
     private LocalDateTime deletedAt;
+
+    @Column(name = "follower_count")
+    private Integer followerCount = 0;
+
+    public Integer getFollowerCount() {
+        return followerCount;
+    }
+
+    public void setFollowerCount(Integer followerCount) {
+        this.followerCount = followerCount;
+    }
 }

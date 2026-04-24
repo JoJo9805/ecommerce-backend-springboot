@@ -1,4 +1,5 @@
 package com.webthuongmai.controller;
+
 import com.webthuongmai.entity.Product;
 import com.webthuongmai.repository.ProductRepository;
 import com.webthuongmai.service.ProductService;
@@ -12,25 +13,31 @@ import java.util.List;
 @CrossOrigin("*")
 public class ProductController {
 
-    private final ProductRepository productRepository;
-    
     @Autowired
     private ProductService productService;
 
-    ProductController(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
+    @Autowired
+    private ProductRepository productRepository;
 
+    // Lấy tất cả sản phẩm
     @GetMapping
     public List<Product> getAll() {
         return productService.getAllProducts();
     }
 
-    @PostMapping
-    public Product create(@RequestBody Product product) {
-        return productService.createProduct(product);
+    // Hiển thị sản phẩm Trending (Cho "Sản phẩm bán chạy" hoặc Acc mới)
+    @GetMapping("/trending")
+    public ResponseEntity<List<Product>> getTrending() {
+        return ResponseEntity.ok(productService.getTrendingProducts(10));
     }
 
+    // Hiển thị theo lịch sử tìm kiếm (Gợi ý cho User)
+    @GetMapping("/recommendations")
+    public ResponseEntity<List<Product>> getRecommendations(@RequestParam(required = false) Long userId) {
+        return ResponseEntity.ok(productService.getRecommendedProducts(userId));
+    }
+
+    // Tìm kiếm và Lọc theo danh mục (Bên trái menu)
     @GetMapping("/search")
     public ResponseEntity<List<Product>> searchProducts(
         @RequestParam(required = false) String keyword,
@@ -46,10 +53,30 @@ public class ProductController {
         return ResponseEntity.ok(productRepository.findAll());
     }
 
+    // Lấy sản phẩm tương tự
     @GetMapping("/{id}/similar")
     public ResponseEntity<List<Product>> getSimilarProducts(
         @PathVariable Long id, 
         @RequestParam Long categoryId) {
-    return ResponseEntity.ok(productRepository.findByCategory_CategoryIDAndProductIDNot(categoryId, id));
-}
+        return ResponseEntity.ok(productRepository.findByCategory_CategoryIDAndProductIDNot(categoryId, id));
+    }
+
+    @GetMapping("/shop/{shopId}")
+    public ResponseEntity<List<Product>> getOtherFromShop(
+            @PathVariable Long shopId, 
+            @RequestParam Long excludeId) {
+        return ResponseEntity.ok(productService.getOtherProductsByShop(shopId, excludeId));
+    }
+
+@GetMapping("/{id}/related-by-category")
+    public ResponseEntity<List<Product>> getRelatedProductsForDetail(
+            @PathVariable Long id, 
+            @RequestParam Long categoryId) {
+        return ResponseEntity.ok(productService.getSimilarProducts(categoryId, id));
+    }
+
+    @PostMapping
+    public Product create(@RequestBody Product product) {
+        return productService.createProduct(product);
+    }
 }

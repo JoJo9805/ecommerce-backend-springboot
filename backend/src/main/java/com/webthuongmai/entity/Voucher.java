@@ -19,4 +19,16 @@ public class Voucher {
     
     private LocalDateTime updatedAt = LocalDateTime.now();
     private LocalDateTime deletedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "shopid")
+    private Shop shop;
+
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
+    }
 }

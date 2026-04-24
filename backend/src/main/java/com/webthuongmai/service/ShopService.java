@@ -17,4 +17,18 @@ public class ShopService {
     public Shop createShop(Shop shop) {
         return shopRepository.save(shop);
     }
+
+    public Shop updateFollowerCount(Long shopId, boolean isFollowing) {
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Shop"));
+        
+        int currentCount = shop.getFollowerCount() != null ? shop.getFollowerCount() : 0;
+        
+        if (isFollowing) {
+            shop.setFollowerCount(currentCount + 1); // Tăng 1 nếu bấm theo dõi
+        } else {
+            shop.setFollowerCount(Math.max(0, currentCount - 1)); // Giảm 1 nếu bỏ theo dõi (không cho âm)
+        }
+        return shopRepository.save(shop);
+    }
 }
