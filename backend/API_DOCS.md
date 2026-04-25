@@ -155,3 +155,103 @@ Danh sách các endpoint dùng để kết nối Frontend và Backend.
 ## 12. Lấy sản phẩm tương tự
 - **Method:** GET  
 - **URL:** `/api/products/5/similar?categoryId=1`
+
+---
+
+## 13. Lấy sản phẩm Trending hoặc Gợi ý cá nhân hóa
+- **Method:** GET  
+- **URL:** `/api/products/recommend?userId={userId}`
+
+### Mô tả
+- Nếu không truyền `userId` (hoặc tài khoản mới): Trả về danh sách sản phẩm **Trending**.  
+- Nếu có `userId`: Trả về sản phẩm dựa trên lịch sử tìm kiếm và hành vi của người dùng.
+
+---
+
+## 14. Lấy sản phẩm theo Danh mục / Lựa chọn bên trái
+- **Method:** GET  
+- **URL:**  
+  - `/api/products/search?categoryId={id}`  
+  - `/api/products/filter?tag={tagName}`
+
+### Mô tả
+Lọc và hiển thị danh sách sản phẩm dựa trên danh mục được chọn từ menu bên trái hoặc theo các thẻ (**tags**).
+
+---
+
+## 15. Hiển thị đánh giá sản phẩm
+- **Method:** GET  
+- **URL:** `/api/products/{id}/reviews`
+
+### Mô tả
+Trả về danh sách tất cả đánh giá của khách hàng cho sản phẩm cụ thể (bao gồm số sao, bình luận và ngày đánh giá).
+
+---
+
+## 16. Hiển thị thông tin chi tiết Shop
+- **Method:** GET  
+- **URL:** `/api/shops/{id}`
+
+### Mô tả
+Trả về các thông tin cốt lõi của Shop như:
+- Tên cửa hàng  
+- Đánh giá trung bình  
+- Số lượng người theo dõi (`follower_count`)
+
+---
+
+## 17. Sản phẩm của Shop (Trang cá nhân & Sản phẩm khác)
+- **Method:** GET  
+- **URL:** `/api/products/shop/{shopId}?excludeId={id}`
+
+### Mô tả
+- Nếu không có `excludeId`: Lấy toàn bộ sản phẩm của Shop (dùng cho trang cá nhân Shop).  
+- Nếu có `excludeId`: Lấy sản phẩm cùng Shop nhưng loại trừ sản phẩm hiện tại (dùng cho mục **"Sản phẩm khác của Shop"**).
+
+---
+
+## 18. Lấy sản phẩm tương tự
+- **Method:** GET  
+- **URL:** `/api/products/{id}/similar`
+
+### Mô tả
+Trả về danh sách các sản phẩm có cùng danh mục hoặc cùng đặc tính với sản phẩm đang xem.
+
+---
+
+## 19. Cập nhật lượt theo dõi Shop (Follow / Unfollow)
+- **Method:** POST  
+- **URL:** `/api/shops/{id}/follow?isFollowing={true/false}`
+
+### Params
+- `isFollowing = true`: Tăng 1 lượt theo dõi  
+- `isFollowing = false`: Giảm 1 lượt theo dõi  
+
+---
+
+## 20. Hiển thị Voucher của Shop
+- **Method:** GET  
+- **URL:** `/api/vouchers/shop/{shopId}`
+
+### Mô tả
+Lấy danh sách các mã giảm giá do Shop phát hành. Dữ liệu trả về qua DTO để đảm bảo an toàn thông tin.
+
+---
+
+## 21. Lưu Voucher vào ví người dùng (Sưu tầm)
+- **Method:** POST  
+- **URL:** `/api/vouchers/save?userId={userId}&voucherId={voucherId}`
+
+### Mô tả
+- Lưu mã voucher vào bảng `user_vouchers`  
+- Chỉ những mã đã được lưu thành công vào ví mới có thể sử dụng khi thanh toán  
+- Hệ thống tự động chặn lưu trùng  
+
+---
+
+## 22. Hiển thị thông báo người dùng
+- **Method:** GET  
+- **URL:** `/api/notifications/user/{userId}`
+
+### Mô tả
+Lấy danh sách thông báo (cập nhật đơn hàng, khuyến mãi, cảnh báo hệ thống), sắp xếp theo thời gian mới nhất lên đầu.
