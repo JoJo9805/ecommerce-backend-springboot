@@ -48,4 +48,8 @@ public class VoucherService {
         return "Lưu Voucher thành công!";
     }
 
+    public List<Voucher> getVouchersByType(String type) {
+        return voucherRepository.findByVoucherTypeAndStatus(type, "Active");
+    }
+
 }

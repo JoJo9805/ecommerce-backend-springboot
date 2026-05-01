@@ -28,6 +28,9 @@ public class Order {
     private String paymentStatus = "Unpaid";
     private String shippingStatus = "Pending";
 
+    private String paymentMethod; 
+    private LocalDateTime expectedDeliveryDate;
+
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();

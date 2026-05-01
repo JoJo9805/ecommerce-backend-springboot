@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Entity
 @Table(name = "Users")
 @Data
@@ -18,7 +21,8 @@ public class User {
     private String email;
     
     @Column(name = "password_hash", nullable = false)
-    private String password; 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String password;
     
     private String phone;
     private java.sql.Date birthday;

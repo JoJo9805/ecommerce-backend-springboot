@@ -1,4 +1,5 @@
 package com.webthuongmai.controller;
+import com.webthuongmai.dto.ReviewRequestDTO;
 import com.webthuongmai.entity.Review;
 import com.webthuongmai.repository.ReviewRepository;
 import com.webthuongmai.service.ReviewService;
@@ -25,6 +26,11 @@ public class ReviewController {
     @GetMapping("/product/{productId}")
     public ResponseEntity<List<Review>> getByProduct(@PathVariable Long productId) {
         return ResponseEntity.ok(reviewRepository.findByProduct_ProductID(productId));
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<String> createReview(@RequestBody ReviewRequestDTO request) {
+        return ResponseEntity.ok(reviewService.createReview(request));
     }
     
     @PostMapping

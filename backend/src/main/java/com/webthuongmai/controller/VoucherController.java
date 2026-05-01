@@ -27,6 +27,11 @@ public class VoucherController {
         return ResponseEntity.ok(voucherRepository.findByShop_ShopID(shopId));
     }
 
+    @GetMapping("/type")
+    public ResponseEntity<List<Voucher>> getVouchersByType(@RequestParam String type) {
+        return ResponseEntity.ok(voucherService.getVouchersByType(type));
+    }
+
     @PostMapping
     public Voucher create(@RequestBody Voucher voucher) {
         return voucherService.createVoucher(voucher);
